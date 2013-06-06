@@ -58,7 +58,7 @@ $(function() {
       '$skip': function() { return this.currentPage * this.perPage },
 
       // field to sort by
-      '$orderby': 'ReleaseYear',
+      '$orderby': 'Rating',
 
       // what format would you like to request results in?
       '$format': 'json',
@@ -193,7 +193,7 @@ $(function() {
     
     render: function() {
       console.log("AppView render");
-      this.$('#results_count').text(MovieCollection.size());
+      this.$('#results_count').text(MovieCollection.totalRecords);
     },
     
     addOne: function(movie) {
@@ -214,4 +214,20 @@ $(function() {
   });
   
   window.App = new AppView;
+});
+
+function lastPostFunc() { 
+    // Show a 'loading' image...
+//    $('div#lastPostsLoader').html('<img src="bigLoader.gif">');
+
+    // Grab more content.
+    MovieCollection.requestNextPage();
+    
+    // Hide the 'loading' image.
+};
+
+$(window).scroll(function(){
+        if  ($(window).scrollTop() == $(document).height() - $(window).height()){
+           lastPostFunc();
+        }
 });

@@ -33,6 +33,8 @@ class Movie(db.Model):
         'starring': self.starring,
         'reviews': self.reviews
         }
+    if not movie['runtime']:
+      movie['runtime'] = 'Unknown'
     return movie
 
 class MainHandler(webapp.RequestHandler):
@@ -46,7 +48,13 @@ class SearchHandler(webapp.RequestHandler):
     movies = []
     top = int(self.request.get('$top', 3))
     start = int(self.request.get('$skip', 0))
-    for movie in Movie.all()[start:start+top]:
+
+    movie_query = Movie.all()
+    
+    if self.request.get('$orderby', '') == 'Rating':
+      movie_query.order('-rating')  # reverse order sort for 'rating'
+    
+    for movie in movie_query.run(offset=start, limit=top):
       movies.append(movie.toDict())
     movies = simplejson.dumps(movies)
     self.response.out.write(movies)
