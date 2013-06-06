@@ -1,0 +1,70 @@
+<html>
+<head>
+<script src="js/jquery-git.js"></script>
+<script src="js/jquery-ui-1.8.18.custom.min.js"></script>
+<script src="js/underscore-min.js"></script>
+<script src="js/backbone.js"></script>
+<script src="js/handlebars-0.9.0.pre.3.js"></script>
+
+<script src="js/main.js"></script>
+
+<link rel="stylesheet" type="text/css" href="css/jquery-ui-1.8.18.custom.css" />
+<link rel="stylesheet" type="text/css" href="css/style.css" />
+
+</head>
+<body>
+
+<div id="movieapp">
+
+<div id='header'>
+SFPL DVD Collection
+</div>
+
+<div id='bluebar'>
+SFPL Results:
+<span id='results_count'>?</span> movies
+<span id='filters'></span>
+<span id='sort'>Sort: Rating</span>
+</div>
+
+<div id='sidebar'>
+ <input id='search' value='Search...'></input>
+ <div class='menu'>Genre
+ </div> 
+ <div class='menu'>Audience Rating
+ </div>
+ <div class='submenu'>
+ </div>
+ <div class='menu'>MPAA Rating
+ </div>
+</div>
+
+<div id='movies'>
+</div>
+
+</div>
+
+<!-- Templates -->
+
+<script type="text/template" id="movie-template">
+<div class='movie'>
+<div class='thumbnail'><img src='http://content6.flixster.com/movie/11/13/43/11134356_mob.jpg'></div>
+<div class='movieinfo'>
+  <div class='topline'>
+    <span class='movietitle'></span>
+    [<span class='year'></span>]
+    <span class='starring'></span>
+  </div>
+  <div class='reviewline'>
+    <span class='rating'>SSSS-</span>
+    <span class='reviews'><a href=''>Reviews</a></span>
+  </div>
+  <div class='runtime'>Runtime: <span class='runtime_value'></span> minutes</div>
+  <div class='mpaa'>MPAA Rating: <span class='mpaa_value'></span></div>
+  <div class='genre'>Family, Comedy</div>
+</div>
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,74 @@
+body {
+   font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+   font-weight: 300;
+}
+
+#header {
+  font-size: 3em;
+  text-align: center;
+}
+
+#bluebar {
+  border-top: thin solid #9999DD;
+  border-bottom: thin solid #9999DD;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+#bluebar #sort {
+  float: right;
+}
+
+#sidebar {
+  float: left;
+  width: 200px;
+}
+
+#movies {
+  margin-left: 220px;
+  height: 100%;
+}
+
+#movies .movie {
+  padding-top: 10px;
+  width: 100%;
+}
+
+#movies .thumbnail {
+  width: 80px;
+  float: left;
+}
+
+#movies .movieinfo {
+  border-bottom: thin solid #E0E0E0;
+  padding-bottom: 10px;
+  margin-left: 80px;
+  width: 100%;
+}
+
+#movies .movietitle {
+  font-size: 1.5em;
+}
+
+#movies .starring {
+  vertical-align: bottom;
+}
+
+#movies .thumbnail img {
+  width: 61px;
+}
+
+#movies .rating {
+}
+
+#movies .runtime {
+  font-size: .90em;
+}
+
+#movies .mpaa {
+  font-size: .90em;
+}
+
+#movies .genre {
+  font-size: .90em;
+}
