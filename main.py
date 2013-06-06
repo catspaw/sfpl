@@ -44,7 +44,9 @@ class MainHandler(webapp.RequestHandler):
 class SearchHandler(webapp.RequestHandler):
   def get(self, id):
     movies = []
-    for movie in Movie.all():
+    top = int(self.request.get('$top', 3))
+    start = int(self.request.get('$skip', 0))
+    for movie in Movie.all()[start:start+top]:
       movies.append(movie.toDict())
     movies = simplejson.dumps(movies)
     self.response.out.write(movies)

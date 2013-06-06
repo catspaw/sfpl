@@ -12,39 +12,88 @@ $(function() {
       this.view.remove();
     }
   });
-  
-  window.MovieList = Backbone.Collection.extend({
+
+  window.PaginatedCollection = Backbone.Paginator.requestPager.extend({
     model: Movie,
     
-    // Caught by main.py server to return a list of movies
-    url: '/search',
-    
-    comparator: function(movie) {
-      return 100 - movie.get("rating");
-    }
-  });
-  
-  window.MovieListContainer = Backbone.Collection.extend({
-    defaults: {
-      movieList: new MovieList(),
+    paginator_core: {
+      // the type of the request (GET by default)
+      type: 'GET',
+
+      // the type of reply (jsonp by default)
+      dataType: 'json',
+
+      // the URL (or base URL) for the service
+      url: '/search'
     },
     
-    // Caught by main.py server to return metadata about the movies
-    url: '/meta',
+    paginator_ui: {
+      // the lowest page index your API allows to be accessed
+      firstPage: 0,
+
+      // which page should the paginator start from
+      // (also, the actual page the paginator is on)
+      currentPage: 0,
+
+      // how many items per page should be shown
+      perPage: 7,
+
+      // a default number of total pages to query in case the API or
+      // service you are using does not support providing the total
+      // number of pages for us.
+      // 10 as a default in case your service doesn't return the total
+      totalPages: 10
+    },
     
-    parse: function(data) {
-      // update the inner collection
-      this.get('movieList').refresh(data.movieList);
+    server_api: {
+      // the query field in the request
+      '$filter': '',
+
+      // number of items to return per request/page
+      '$top': function() { return this.perPage },
+
+      // how many results the request should skip ahead to
+      // customize as needed. For the Netflix API, skipping ahead based on
+      // page * number of results per page was necessary.
+      '$skip': function() { return this.currentPage * this.perPage },
+
+      // field to sort by
+      '$orderby': 'ReleaseYear',
+
+      // what format would you like to request results in?
+      '$format': 'json',
+
+      // custom parameters
+      '$inlinecount': 'allpages'
+    },
+
+    comparator: function(movie) {
+      return 100 - movie.get("rating");
+    },
+        
+    parse: function(response) {
+      // Be sure to change this based on how your results
+      // are structured (e.g d.results is Netflix specific)
       
-      // Cleanup
-      delete data.movieList;
+      // var tags = response.d.results;
       
-      return data;
+      //Normally this.totalPages would equal response.d.__count
+      //but as this particular NetFlix request only returns a
+      //total count of items for the search, we divide.
+      
+      //this.totalPages = Math.ceil(response.d.__count / this.perPage);
+      
+      this.totalRecords = this.totalPages * this.perPage;
+      console.log("Parse called");
+      return response;
+    },
+    
+    error: function(resp, options) {
+      console.log("Error calling backbone parse.");
     }
   });
   
-  window.Movies = new MovieList;
-  window.MovieListContainer = new MovieListContainer(movieList=Movies);
+  window.MovieCollection = new PaginatedCollection;
   
   window.MovieView = Backbone.View.extend({
     tagName: "div",
@@ -61,6 +110,7 @@ $(function() {
     
     // Re-render the contents of the movie item,
     render: function() {
+      console.log('MovieView render called');
       $(this.el).html(this.template(this.model.toJSON()));
       this.setContent();
       return this;
@@ -103,38 +153,64 @@ $(function() {
     }
   });
   
+  window.PaginatedView = Backbone.View.extend({
+    tagName: 'aside',
+    
+    initialize: function() {
+      MovieCollection.bind('sync', this.render);
+      this.$el.appendTo('#movies');
+    },
+    
+    render: function () {
+      console.log('PaginatedView render');
+			var html = this.template(PaginatedView.info());
+			this.$el.html(html);
+		},
+  });
+  window.pagination = PaginatedView;
+
   // The application
   // ----------------------
   
   window.AppView = Backbone.View.extend({
-  
     el:$("#movieapp"),
-    
+
+    events: {
+      'click #next': 'nextResultsPage'
+    },
+        
     initialize: function() {
       _.bindAll(this, 'addOne', 'addAll', 'render');
       
-      Movies.bind('add',     this.addOne);
-      Movies.bind('refresh', this.addAll);
-      Movies.bind('all',     this.render);
+      MovieCollection.bind('add',     this.addOne);
+      //MovieCollection.bind('refresh', this.addAll);
+      MovieCollection.bind('all',     this.render);
       
-      Movies.fetch();
+      MovieCollection.pager();
+//      MovieCollection.fetch();
+     // MovieCollection.bootstrap({totalRecords: 50});
     },
     
     render: function() {
-      this.addAll();
-      this.$('#results_count').text(Movies.size());
-      console.log(Movies.size());
+      console.log("AppView render");
+      this.$('#results_count').text(MovieCollection.size());
     },
     
     addOne: function(movie) {
+      console.log("addOne called");
       var view = new MovieView({model: movie});
       this.$("#movies").append(view.render().el);
     },
     
     addAll: function() {
-      Movies.each(this.addOne);
-    }
+      console.log("addAll called");
+      MovieCollection.each(this.addOne);
+    },
     
+    nextResultsPage: function(e) {
+      e.preventDefault();
+      MovieCollection.requestNextPage();
+    }    
   });
   
   window.App = new AppView;
