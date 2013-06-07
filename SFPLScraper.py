@@ -67,8 +67,11 @@ if __name__ == '__main__':
   ripper = HTMLToDVDs()
   db = DBWriter()
   
-  index = 12
-  while True:
+  # The number of movies that the SFPL displays in a single search result.
+  movies_per_page = 12
+  
+  index = movies_per_page
+  while True:  # SFPL server is so slow, we don't have to throttle
     print index
     page = scraper.scrape(index)
     movies = ripper.grab(page)
@@ -78,4 +81,4 @@ if __name__ == '__main__':
     for movie in movies:
       print movie
     db.write(movies)
-    index += 12
+    index += movies_per_page
