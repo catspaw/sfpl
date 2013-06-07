@@ -11,6 +11,7 @@ All of the scripts in #1 are required because we don't have actual access to the
 Here's how they work.
 
 Scrape movies from the SFPL website.
+
     touch sfpl.db
     python SFPLScraper.py
 
@@ -23,6 +24,7 @@ We temporarily store this information into an sqlite database, because the next 
 At some point, this command will fail due to the API limit having been reached.  Wait a day and try again, until complete.
 
 Finally, upload this data to the App Engine datastore.
+
     python sqlite2appengine.py
 
 Note that this command can be run at any point during the RottenTomatoes.py lifecycle.  Duplicates will not be added to the App Engine datastore.  In that way, you can populate the sqlite database with some Rotten Tomatoes data, work on the website, and then populate it with more on another day.
