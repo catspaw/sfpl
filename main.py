@@ -7,16 +7,20 @@ from django.utils import simplejson
 
 import os
 
+# The SFPL only has so many movies.  Keeping an upper limit helps
+# queries to run faster.
+MAX_NUM_MOVIES = 6000
+
 class MovieList(db.Model):
   timestamp = db.DateTimeProperty(auto_now_add=True)
 
 class Movie(db.Model):
   rtid = db.StringProperty()
   title = db.StringProperty()
-  year = db.StringProperty()
+  year = db.IntegerProperty()
   mpaa = db.StringProperty()
-  runtime = db.StringProperty()
-  rating = db.StringProperty()
+  runtime = db.IntegerProperty()
+  rating = db.IntegerProperty()
   thumbnail = db.StringProperty()
   starring = db.StringProperty()
   reviews = db.StringProperty()
@@ -51,13 +55,24 @@ class SearchHandler(webapp.RequestHandler):
 
     movie_query = Movie.all()
     
+    min_rating = self.request.get('$audiencerating', '0')
+    # Convert stars (eg: 4.5) into RottenTomatoes percentage rating.
+    min_rt_rating = int((float(min_rating) * 20) - 10)
+    
+    movie_query.filter('rating >=', min_rt_rating)
+    
     if self.request.get('$orderby', '') == 'Rating':
       movie_query.order('-rating')  # reverse order sort for 'rating'
+
+    matched_count = movie_query.count(limit=MAX_NUM_MOVIES)
     
     for movie in movie_query.run(offset=start, limit=top):
       movies.append(movie.toDict())
-    movies = simplejson.dumps(movies)
-    self.response.out.write(movies)
+      
+    data = {'metadata': {'matched_count': matched_count},
+            'movies': movies}
+    data = simplejson.dumps(data)
+    self.response.out.write(data)
 
 
 class MetaHandler(webapp.RequestHandler):
@@ -66,15 +81,23 @@ class MetaHandler(webapp.RequestHandler):
     data = simplejson.dumps(data)
     self.response.out.write(data)
     
+
+def SmarterIntCast(value):
+  if value:
+    try:
+      return int(value)
+    except ValueError:
+      return float(value)
+  return 0  # Handle the empty string as zeroes
     
 class DBInputHandler(webapp.RequestHandler):
   def post(self, id):
     movie = Movie(rtid=self.request.get('rtid'),
                   title=self.request.get('title'),
-                  year=self.request.get('year'),
+                  year=SmarterIntCast(self.request.get('year')),
                   mpaa=self.request.get('mpaa'),
-                  runtime=self.request.get('runtime'),
-                  rating=self.request.get('rating'),
+                  runtime=SmarterIntCast(self.request.get('runtime')),
+                  rating=SmarterIntCast(self.request.get('rating')),
                   thumbnail=self.request.get('thumbnail'),
                   starring=self.request.get('starring'),
                   reviews=self.request.get('reviews'),

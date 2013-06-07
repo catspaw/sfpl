@@ -60,16 +60,17 @@ class FindAndFillDB(object):
     page = rt.scrape(movie[0])  # title
     rtd = RottenTomatoData(page)
     
+    movie_title = movie[0].replace('"', '""') # sqlite needs double quotes 
     if not rtd.db_change:
       sql_statement = "DELETE FROM movies "
-    else:   
+    else:
       sql_statement = "UPDATE movies SET "
       for key,value in rtd.db_change.items():
         value = str(value).replace('"', '\'')  # sub double-quote with single
         sql_statement += key + '="' + value + '", '
-      sql_statement += 'title="%s" ' % (movie[0])
+      sql_statement += 'title="%s" ' % (movie_title)
       
-    sql_statement += 'WHERE title="%s"' % (movie[0])
+    sql_statement += 'WHERE title="%s"' % (movie_title)
     
     print sql_statement
     result = c.execute(sql_statement)
@@ -80,6 +81,6 @@ if __name__ == '__main__':
   rt = Query()
   
   filler = FindAndFillDB()
-  for i in range(100):
+  for i in range(5000):
     filler.next()
   

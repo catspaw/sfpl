@@ -8,13 +8,30 @@ $(function() {
     },
     
     clear: function() {
-      this.destroy();
+      console.log("goodbye cruel world");
       this.view.remove();
+    }
+  });
+  
+  window.Filters = Backbone.Model.extend({
+    defaults: {
+      audienceRating: 0
+    }
+  });
+  
+  window.Statistics = Backbone.Model.extend({
+    defaults: {
+      matched_count: 0
     }
   });
 
   window.PaginatedCollection = Backbone.Paginator.requestPager.extend({
     model: Movie,
+    
+    initialize: function() {
+      this.filters = new Filters();
+      this.statistics = new Statistics();
+    },
     
     paginator_core: {
       // the type of the request (GET by default)
@@ -64,7 +81,9 @@ $(function() {
       '$format': 'json',
 
       // custom parameters
-      '$inlinecount': 'allpages'
+      '$audiencerating': function() { 
+          return this.filters.get('audienceRating')
+       }
     },
 
     comparator: function(movie) {
@@ -84,12 +103,18 @@ $(function() {
       //this.totalPages = Math.ceil(response.d.__count / this.perPage);
       
       this.totalRecords = this.totalPages * this.perPage;
-      console.log("Parse called");
-      return response;
+      this.statistics.set('matched_count', response.metadata.matched_count);
+      return response.movies;
     },
     
     error: function(resp, options) {
       console.log("Error calling backbone parse.");
+    },
+    
+    reset: function() {
+      _.each(this.models, function(obj) { obj.clear() });
+      this.currentPage = 0;
+      this.pager();
     }
   });
   
@@ -110,7 +135,6 @@ $(function() {
     
     // Re-render the contents of the movie item,
     render: function() {
-      console.log('MovieView render called');
       $(this.el).html(this.template(this.model.toJSON()));
       this.setContent();
       return this;
@@ -176,24 +200,29 @@ $(function() {
     el:$("#movieapp"),
 
     events: {
-      'click #next': 'nextResultsPage'
+      'click #next':                  'nextResultsPage',
+      'click #audiencerating :radio':  'updateFilters'
     },
         
     initialize: function() {
-      _.bindAll(this, 'addOne', 'addAll', 'render');
+      _.bindAll(this, 'addOne', 'addAll', 'render', 'refresh');
       
       MovieCollection.bind('add',     this.addOne);
-      //MovieCollection.bind('refresh', this.addAll);
       MovieCollection.bind('all',     this.render);
+      MovieCollection.filters.bind('change', this.refresh);
+      MovieCollection.statistics.bind('change', this.updateStats);
       
       MovieCollection.pager();
-//      MovieCollection.fetch();
-     // MovieCollection.bootstrap({totalRecords: 50});
     },
     
     render: function() {
-      console.log("AppView render");
-      this.$('#results_count').text(MovieCollection.totalRecords);
+      // pass
+    },
+    
+    refresh: function() {
+      console.log("AppView refresh");
+      this.$("#movies").empty();
+      MovieCollection.reset();
     },
     
     addOne: function(movie) {
@@ -210,7 +239,17 @@ $(function() {
     nextResultsPage: function(e) {
       e.preventDefault();
       MovieCollection.requestNextPage();
-    }    
+    },
+     
+    updateFilters: function(e) {
+      MovieCollection.filters.set('audienceRating',
+                                  $('input[name="audience"]:checked').val());
+    },
+    
+    updateStats: function(e) {
+      $('#results_count').text(e.get('matched_count'));
+      console.log(e.get('matched_count'));
+    }
   });
   
   window.App = new AppView;
