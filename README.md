@@ -3,8 +3,8 @@ A demo of a superior web interface to the movies available at the SFPL (San Fran
 You can see the original interface here: http://sfpl.org
 
 There are two parts to the files in this repo:
- 1) A set of scripts that build up the database of movies.
- 2) A Google App Engine web interface to those movies.
+    1) A set of scripts that build up the database of movies.
+    2) A Google App Engine web interface to those movies.
  
 All of the scripts in #1 are required because we don't have actual access to the SFPL database.
 
@@ -12,6 +12,7 @@ Here's how they work.
 
 Scrape movies from the SFPL website.
 
+    cd scripts/
     touch sfpl.db
     python SFPLScraper.py
 
