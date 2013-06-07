@@ -70,8 +70,9 @@ class SearchHandler(webapp.RequestHandler):
     top = int(self.request.get('$top', 10))
     start = int(self.request.get('$skip', 0))
 
-    movie_query = self.QueryBuilder(request)
-    
+    movie_query = self.QueryBuilder()
+    matched_count = movie_query.count(limit=MAX_NUM_MOVIES)
+        
     for movie in movie_query.run(offset=start, limit=top):
       movies.append(movie.toDict())
       
@@ -80,7 +81,7 @@ class SearchHandler(webapp.RequestHandler):
     data = simplejson.dumps(data)
     self.response.out.write(data)
 
-  def QueryBuilder(self, request):
+  def QueryBuilder(self):
     """Return a Query object, given filters specified in the request object.
     
     Valid filters:
@@ -102,8 +103,6 @@ class SearchHandler(webapp.RequestHandler):
       movie_query.order('-year')
     else:
       movie_query.order('-rating')
-
-    matched_count = movie_query.count(limit=MAX_NUM_MOVIES)
     
     return movie_query
     
